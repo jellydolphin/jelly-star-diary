@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jelly Star · 我们的手帐</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ RESET ============ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+
+body {
+  font-family: 'Noto Serif SC', 'Noto Sans SC', 'PingFang SC', serif;
+  background: #faf6f0;
+  /* Soft dot pattern */
+  background-image:
+    radial-gradient(circle, #e8c4b8 1px, transparent 1px),
+    radial-gradient(circle, #c4d8e0 1px, transparent 1px),
+    radial-gradient(circle, #d4e8c4 1px, transparent 1px);
+  background-size:
+    28px 28px,
+    36px 36px,
+    24px 24px;
+  background-position:
+    0 0,
+    14px 14px,
+    7px 21px;
+  min-height: 100vh;
+  color: #4a3f3a;
+  line-height: 1.75;
+}
+
+/* ============ LOGIN PAGE ============ */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-delete-account {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: #b0a090;
+  background: none;
+  border: 1px solid #e0d5c8;
+  border-radius: 50px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.login-delete-account:hover { color: #b87070; border-color: #e8c0c0; }
+
+.login-card {
+  background: #fffdf8;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 18px;
+  padding: 48px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.04);
+  text-align: center;
+  position: relative;
+  /* Soft dot border decoration */
+  outline: 1.5px dashed #e8c4b8;
+  outline-offset: 6px;
+  border-radius: 18px;
+}
+
+/* Pixel hearts decoration */
+.login-card::before {
+  content: '♥ ♥ ♥';
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: #e8a0a0;
+  letter-spacing: 8px;
+  background: #fffdf8;
+  padding: 0 12px;
+}
+
+.login-card::after {
+  content: '♥ ♥ ♥';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  color: #a0c8e0;
+  letter-spacing: 8px;
+  background: #fffdf8;
+  padding: 0 12px;
+}
+
+.login-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 34px;
+  font-weight: 600;
+  color: #5a4a3a;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  color: #8a7a6a;
+  margin-bottom: 28px;
+  letter-spacing: 2px;
+}
+
+.login-input {
+  width: 100%;
+  font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  font-size: 15px;
+  padding: 12px 16px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 12px;
+  background: #fffdf8;
+  color: #4a3f3a;
+  outline: none;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-input:focus {
+  border-color: #e8b0a0;
+  box-shadow: 0 0 0 4px rgba(232, 160, 160, 0.08);
+}
+
+.login-input::placeholder { color: #c4b5a5; }
+
+/* Color picker - pixel style */
+.color-picker {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.color-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #e0d5c8;
+  cursor: pointer;
+}
+
+.color-dot.selected {
+  border-color: #5a4a3a;
+  box-shadow: 0 0 0 2px #fffdf8, 0 0 0 4px #5a4a3a;
+}
+
+.login-btn {
+  width: 100%;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 50px;
+  background: #e8c4b8;
+  color: #5a4a3a;
+  cursor: pointer;
+  letter-spacing: 3px;
+  box-shadow: 0 2px 8px rgba(200, 160, 140, 0.25);
+}
+
+.login-btn:hover {
+  background: #f0d4c8;
+  box-shadow: 0 4px 14px rgba(200, 160, 140, 0.3);
+}
+
+.login-btn:active {
+  background: #e0b8a8;
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-error {
+  color: #c87070;
+  font-size: 13px;
+  margin-top: 12px;
+  min-height: 20px;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+.btn-clear-session {
+  margin-top: 10px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: #b0a090;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn-clear-session:hover { color: #8a7a6a; }
+
+/* ============ MAIN APP ============ */
+.app-container {
+  display: none;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.app-container.visible { display: block; }
+
+/* ============ HEADER ============ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(250, 246, 240, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid #e8dcd0;
+  padding: 14px 0;
+  margin-bottom: 32px;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.logo-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #5a4a3a;
+  letter-spacing: 2px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ============ USERS BAR ============ */
+.users-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #fff;
+  font-family: 'Noto Serif SC', serif;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-left: -4px;
+}
+
+.user-avatar:first-child { margin-left: 0; }
+.user-avatar.me { border-color: #e8b0a0; box-shadow: 0 0 0 2px #fffdf8, 0 0 0 4px #e8b0a0; }
+
+/* ============ SEARCH ============ */
+.search-wrap { position: relative; }
+
+.search-input {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  padding: 8px 14px 8px 32px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 50px;
+  background: rgba(255, 253, 248, 0.7);
+  color: #4a3f3a;
+  width: 170px;
+  outline: none;
+}
+
+.search-input:focus {
+  width: 220px;
+  border-color: #b8a090;
+  background: #fffdf8;
+  box-shadow: 0 0 0 4px rgba(180, 160, 140, 0.08);
+}
+
+.search-input::placeholder { color: #c4b5a5; }
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #c4b5a5;
+  pointer-events: none;
+}
+
+/* ============ BUTTONS ============ */
+.btn {
+  font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background: #e8c4b8;
+  color: #5a4a3a;
+  box-shadow: 0 2px 8px rgba(200, 160, 140, 0.2);
+  min-width: 42px;
+  justify-content: center;
+}
+
+.btn-primary:hover { background: #f0d4c8; box-shadow: 0 3px 12px rgba(200, 160, 140, 0.25); }
+.btn-primary:active { background: #e0b8a8; }
+
+.btn-ghost {
+  background: transparent;
+  color: #5a4a3a;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 50px;
+}
+
+.btn-ghost:hover {
+  background: rgba(232, 196, 184, 0.1);
+  border-color: #d0b8a8;
+}
+
+.btn-sm { font-size: 12px; padding: 4px 12px; }
+
+.btn-danger {
+  background: transparent;
+  color: #b87070;
+  border: 1.5px solid #e8d0d0;
+  border-radius: 50px;
+}
+
+.btn-danger:hover {
+  background: rgba(200, 160, 160, 0.06);
+  border-color: #d0a8a8;
+}
+
+.btn-logout {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  padding: 4px 12px;
+  color: #8a7a6a;
+  background: transparent;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+.btn-logout:hover { color: #5a4a3a; border-color: #b8a090; }
+
+/* ============ DIARY GRID ============ */
+.diary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-bottom: 60px;
+}
+
+@media (max-width: 960px) {
+  .diary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .diary-grid { grid-template-columns: 1fr; }
+  .header-inner { flex-direction: column; align-items: flex-start; }
+  .search-input { width: 140px; }
+  .search-input:focus { width: 180px; }
+}
+
+/* ============ DIARY CARD ============ */
+.diary-card {
+  background: #fffdf8;
+  border: 1px solid #e8dcd0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.03);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Author color strip - pixel style */
+.card-author-strip {
+  height: 4px;
+  width: 100%;
+}
+
+/* Card image */
+.card-images {
+  display: grid;
+  gap: 2px;
+  overflow: hidden;
+  border-bottom: 1px solid #e8dcd0;
+}
+.card-images.single { grid-template-columns: 1fr; max-height: 240px; }
+.card-images.double { grid-template-columns: 1fr 1fr; max-height: 180px; }
+.card-images.triple { grid-template-columns: 1fr 1fr 1fr; max-height: 150px; }
+.card-images.multi  { grid-template-columns: 1fr 1fr; max-height: 200px; }
+
+.card-img-wrap {
+  overflow: hidden;
+  position: relative;
+}
+.card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.more-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+/* Card body */
+.card-body {
+  padding: 16px 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card-date {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: #8a7a6a;
+  letter-spacing: 1px;
+}
+
+.card-author {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  color: #8a7a6a;
+}
+
+.card-author-dot {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.card-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #4a3f3a;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-preview {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px;
+  color: #6a5a4a;
+  line-height: 1.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Mood tags */
+.card-mood-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.mood-tag {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  border: 1.5px solid #e0d5c8;
+  color: #6a5a4a;
+  background: #fffdf8;
+  letter-spacing: 1px;
+}
+
+.mood-tag.happy   { border-color: #e8b0a0; color: #b87070; background: rgba(232,160,160,0.06); }
+.mood-tag.calm    { border-color: #a0c8e0; color: #6a90a8; background: rgba(160,200,224,0.06); }
+.mood-tag.energy  { border-color: #e0c8a0; color: #a8906a; background: rgba(224,200,160,0.06); }
+.mood-tag.love    { border-color: #d0a8d0; color: #907090; background: rgba(208,160,208,0.06); }
+.mood-tag.fresh   { border-color: #a0d0b0; color: #6a9070; background: rgba(160,208,176,0.06); }
+.mood-tag.think   { border-color: #b0a8a0; color: #6a6058; background: rgba(176,168,160,0.06); }
+
+/* Card actions */
+.card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+/* ============ EMPTY STATE ============ */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.empty-illustration {
+  font-size: 64px;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #8a7a6a;
+  letter-spacing: 2px;
+}
+
+.empty-sub {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  color: #b0a090;
+  letter-spacing: 1px;
+}
+
+/* ============ MODAL ============ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(40, 35, 30, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: #fffdf8;
+  border: 1px solid #e8dcd0;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 16px 48px rgba(0,0,0,0.06);
+  position: relative;
+}
+
+/* Subtle corner dots */
+.modal::before {
+  content: '·';
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 16px;
+  color: #e8b0a0;
+}
+
+.modal::after {
+  content: '·';
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  font-size: 16px;
+  color: #a0c8e0;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px 0;
+}
+
+.modal-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a3f3a;
+  letter-spacing: 2px;
+}
+
+.modal-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid #e0d5c8;
+  background: #fffdf8;
+  cursor: pointer;
+  font-size: 14px;
+  color: #8a7a6a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.modal-close:hover { background: #f5f0e8; border-color: #c0a898; }
+
+.modal-body {
+  padding: 24px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Form */
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+
+.form-label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5a4a3a;
+  letter-spacing: 1px;
+}
+
+.form-input, .form-textarea {
+  font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  border: 1.5px solid #e0d5c8;
+  border-radius: 12px;
+  background: #faf7f2;
+  color: #4a3f3a;
+  outline: none;
+  resize: vertical;
+  line-height: 1.8;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: #b8a090;
+  background: #fffdf8;
+  box-shadow: 0 0 0 4px rgba(180, 160, 140, 0.06);
+}
+.form-textarea { min-height: 140px; line-height: 1.7; }
+.form-input::placeholder, .form-textarea::placeholder { color: #c4b5a5; }
+
+/* ============ MOOD SELECTOR ============ */
+.mood-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mood-option {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1.5px solid #e0d5c8;
+  background: #fffdf8;
+  cursor: pointer;
+  color: #6a5a4a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 1px;
+}
+.mood-option:hover { border-color: #c0a898; background: rgba(232, 196, 184, 0.06); }
+
+.mood-option.selected[data-mood="happy"]  { border-color: #e8b0a0; background: rgba(232,160,160,0.10); color: #b87070; }
+.mood-option.selected[data-mood="calm"]   { border-color: #a0c8e0; background: rgba(160,200,224,0.10); color: #6a90a8; }
+.mood-option.selected[data-mood="energy"] { border-color: #e0c8a0; background: rgba(224,200,160,0.10); color: #a8906a; }
+.mood-option.selected[data-mood="love"]   { border-color: #d0a8d0; background: rgba(208,160,208,0.10); color: #907090; }
+.mood-option.selected[data-mood="fresh"]  { border-color: #a0d0b0; background: rgba(160,208,176,0.10); color: #6a9070; }
+.mood-option.selected[data-mood="think"]  { border-color: #b0a8a0; background: rgba(176,168,160,0.10); color: #6a6058; }
+
+/* ============ PHOTO UPLOAD ============ */
+.photo-upload-area {
+  border: 2px dashed #e0d5c8;
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(255, 253, 248, 0.5);
+}
+.photo-upload-area:hover, .photo-upload-area.drag-over {
+  border-color: #c0a898;
+  background: rgba(232, 196, 184, 0.06);
+}
+
+.upload-hint {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  color: #8a7a6a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 1px;
+}
+.upload-hint-icon { font-size: 32px; opacity: 0.7; }
+.upload-hint-sub { font-family: 'Noto Sans SC', sans-serif; font-size: 11px; color: #b0a090; }
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.photo-preview-item {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1.5px solid #e8dcd0;
+}
+.photo-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-remove-btn {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(60, 50, 40, 0.55);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+.photo-preview-item:hover .photo-remove-btn { opacity: 1; }
+.photo-remove-btn:hover { background: rgba(180, 100, 100, 0.8); }
+
+.uploading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  color: #8a7a6a;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+}
+
+/* ============ MODAL FOOTER ============ */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ============ DETAIL PHOTO SWIPE ============ */
+.detail-photo-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,253,248,0.8);
+  border: 1px solid #e0d5c8;
+  cursor: pointer;
+  font-size: 16px;
+  color: #5a4a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.detail-photo-nav:hover { background: #fffdf8; }
+.detail-photo-nav.prev { left: 8px; }
+.detail-photo-nav.next { right: 8px; }
+.detail-photo-nav:disabled { opacity: 0.25; cursor: default; }
+
+.detail-photo-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,253,248,0.5);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.detail-photo-dot.active { background: #e8c4b8; }
+
+#detailPhotoSwipe::-webkit-scrollbar { display: none; }
+#detailPhotoSwipe { scrollbar-width: none; }
+
+/* ============ LIGHTBOX (swipe gallery) ============ */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(24, 20, 16, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lightbox-image-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: 80vh;
+}
+
+.lightbox-image-wrap img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  border: 1px solid #e0d5c8;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.2);
+  object-fit: contain;
+}
+
+/* Nav arrows */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 253, 248, 0.85);
+  border: 1px solid #e0d5c8;
+  cursor: pointer;
+  font-size: 18px;
+  color: #5a4a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.lightbox-nav:hover { background: #fffdf8; }
+.lightbox-nav:active { background: #f0e8e0; }
+.lightbox-nav.prev { left: 20px; }
+.lightbox-nav.next { right: 20px; }
+.lightbox-nav:disabled { opacity: 0.3; cursor: default; }
+
+/* Counter dots */
+.lightbox-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.lightbox-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 253, 248, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.lightbox-dot.active { background: #e8c4b8; }
+
+/* Close hint */
+.lightbox-close-hint {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 253, 248, 0.5);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 640px) {
+  .lightbox-nav.prev { left: 8px; }
+  .lightbox-nav.next { right: 8px; }
+  .lightbox-nav { width: 36px; height: 36px; font-size: 15px; }
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #faf5ef; }
+::-webkit-scrollbar-thumb { background: #c4b5a5; }
+::-webkit-scrollbar-thumb:hover { background: #a09080; }
+
+/* ============ TOAST ============ */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  background: #5a4a3a;
+  color: #fffdf8;
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+/* ============ HIDDEN ============ */
+.hidden-file-input { display: none; }
+.login-page.hidden { display: none; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 480px) {
+  .app-container { padding: 0 10px; }
+  .diary-grid { gap: 16px; }
+  .modal { max-height: 95vh; }
+  .modal-body { padding: 18px 18px 20px; }
+  .card-body { padding: 14px 14px; }
+  .logo-text { font-size: 22px; }
+  .login-card { padding: 36px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="login-page" id="loginPage">
+  <button class="login-delete-account" onclick="deleteAccount()" id="loginDeleteBtn" style="display:none">删除账号</button>
+  <div class="login-card">
+    <div class="login-title">Jelly Star</div>
+    <div class="login-sub">✦ 两个人的像素日记本 ✦</div>
+    <input type="text" class="login-input" id="nicknameInput" placeholder="你的昵称" maxlength="12" autocomplete="off">
+    <div class="color-picker" id="colorPicker">
+      <div class="color-dot selected" data-color="#e8a0a0" style="background:#e8a0a0"></div>
+      <div class="color-dot" data-color="#a0c8e0" style="background:#a0c8e0"></div>
+      <div class="color-dot" data-color="#c4d8a0" style="background:#c4d8a0"></div>
+      <div class="color-dot" data-color="#d0a0d0" style="background:#d0a0d0"></div>
+      <div class="color-dot" data-color="#e0c8a0" style="background:#e0c8a0"></div>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">✦ 进 入 ✦</button>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn-clear-session" onclick="clearSession()" id="clearSessionBtn" style="display:none">清除登录记录</button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div class="app-container" id="appContainer">
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo-area">
+        <span class="logo-icon">📔</span>
+        <span class="logo-text">Jelly Star</span>
+      </div>
+      <div class="header-actions">
+        <div class="users-bar" id="usersBar"></div>
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" class="search-input" placeholder="搜索日记..." id="searchInput" oninput="renderDiaries()">
+        </div>
+        <button class="btn btn-primary" onclick="openEditor()" title="写日记">✎</button>
+        <button class="btn-logout" onclick="doLogout()">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="diary-grid" id="diaryGrid"></div>
+</div>
+
+<!-- ===== EDITOR MODAL ===== -->
+<div class="modal-overlay" id="editorModal" style="display:none" onclick="closeEditorIfOverlay(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">✎ 新日记</span>
+      <button class="modal-close" onclick="closeEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+
+      <div class="form-group">
+        <label class="form-label">◆ 日期</label>
+        <input type="date" class="form-input" id="diaryDate">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 标题</label>
+        <input type="text" class="form-input" id="diaryTitle" placeholder="今天想写点什么...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 心情</label>
+        <div class="mood-selector" id="moodSelector">
+          <button class="mood-option" data-mood="happy" onclick="toggleMood(this)">😊 开心</button>
+          <button class="mood-option" data-mood="calm" onclick="toggleMood(this)">😌 平静</button>
+          <button class="mood-option" data-mood="energy" onclick="toggleMood(this)">⚡ 元气</button>
+          <button class="mood-option" data-mood="love" onclick="toggleMood(this)">💕 心动</button>
+          <button class="mood-option" data-mood="fresh" onclick="toggleMood(this)">🌿 清新</button>
+          <button class="mood-option" data-mood="think" onclick="toggleMood(this)">🤔 沉思</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 内容</label>
+        <textarea class="form-textarea" id="diaryContent" placeholder="今天发生了什么？记录下这一刻吧..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 睡眠</label>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-family:'Noto Sans SC',sans-serif;font-size:13px;color:#8a7a6a">时长</span>
+            <input type="number" class="form-input" id="sleepHours" placeholder="0" min="0" max="24" step="0.5" style="width:72px;text-align:center">
+            <span style="font-family:'Noto Sans SC',sans-serif;font-size:13px;color:#8a7a6a">小时</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-family:'Noto Sans SC',sans-serif;font-size:13px;color:#8a7a6a">质量</span>
+            <div id="sleepStars" style="display:flex;gap:2px;cursor:pointer">
+              <span data-star="1" style="font-size:20px;opacity:0.25">★</span>
+              <span data-star="2" style="font-size:20px;opacity:0.25">★</span>
+              <span data-star="3" style="font-size:20px;opacity:0.25">★</span>
+              <span data-star="4" style="font-size:20px;opacity:0.25">★</span>
+              <span data-star="5" style="font-size:20px;opacity:0.25">★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 运动</label>
+        <textarea class="form-textarea" id="workoutText" placeholder="今天做了什么运动？跑步、瑜伽、力量训练…" style="min-height:60px"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">◆ 照片</label>
+        <div class="photo-upload-area" id="photoUploadArea"
+          onclick="document.getElementById('photoInput').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <div class="upload-hint">
+            <span class="upload-hint-icon">📷</span>
+            <span>点击上传或拖拽照片到此处</span>
+            <span class="upload-hint-sub">支持 Ctrl+V 粘贴截图</span>
+          </div>
+        </div>
+        <input type="file" class="hidden-file-input" id="photoInput" accept="image/*" multiple onchange="handleFileSelect(event)">
+        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeEditor()">取消</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveDiary()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DETAIL MODAL ===== -->
+<div class="modal-overlay" id="detailModal" style="display:none" onclick="closeDetailIfOverlay(event)">
+  <div class="modal detail-modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="detailTitle">日记详情</span>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" style="gap:14px">
+      <!-- Author info -->
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="detailAuthorDot" style="width:10px;height:10px;border-radius:50%;display:inline-block"></span>
+        <span id="detailAuthor" style="font-family:'Noto Serif SC',serif;font-size:14px;color:#6a5a4a"></span>
+        <span id="detailDate" style="font-family:'Noto Sans SC',sans-serif;font-size:13px;color:#9aa0a8;margin-left:auto"></span>
+      </div>
+
+      <!-- Photos gallery (swipeable in detail view) -->
+      <div id="detailPhotos" style="display:none;position:relative;border-radius:12px;overflow:hidden;background:#f5f0e8">
+        <div id="detailPhotoSwipe" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:0">
+        </div>
+        <button class="detail-photo-nav prev" id="detailPhotoPrev" onclick="event.stopPropagation();detailPhotoPrev()">‹</button>
+        <button class="detail-photo-nav next" id="detailPhotoNext" onclick="event.stopPropagation();detailPhotoNext()">›</button>
+        <div id="detailPhotoDots" style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px"></div>
+      </div>
+
+      <!-- Mood -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span id="detailMood" style="display:none;font-family:'Noto Sans SC',sans-serif;font-size:12px;padding:3px 10px;border-radius:50px;border:1.5px solid #e0d5c8;color:#6a5a4a"></span>
+        <span id="detailSleep" style="display:none;font-family:'Noto Sans SC',sans-serif;font-size:12px;padding:3px 10px;border-radius:50px;border:1.5px solid #c4d8e0;color:#6a90a8;background:rgba(160,200,224,0.06)"></span>
+      </div>
+
+      <!-- Workout -->
+      <div id="detailWorkout" style="display:none;font-family:'Noto Serif SC',serif;font-size:14px;color:#5a4a3a;line-height:1.8;white-space:pre-wrap;padding:10px 14px;background:#faf7f2;border-radius:10px"></div>
+
+      <!-- Content -->
+      <div id="detailContent" style="font-family:'Noto Serif SC','STSong',serif;font-size:15px;color:#4a3f3a;line-height:2;white-space:pre-wrap"></div>
+
+      <!-- Actions -->
+      <div id="detailActions" class="modal-footer" style="display:none">
+        <button class="btn btn-danger btn-sm" onclick="deleteDetailDiary()">删除</button>
+        <button class="btn btn-primary btn-sm" onclick="editDetailDiary()">编辑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LIGHTBOX ===== -->
+<div class="lightbox-overlay" id="lightbox" style="display:none">
+  <div class="lightbox-image-wrap">
+    <img id="lightboxImg" src="" alt="照片预览">
+  </div>
+  <div class="lightbox-dots" id="lightboxDots"></div>
+  <span class="lightbox-close-hint">点击空白处关闭 · 左右滑动切换</span>
+  <button class="lightbox-nav prev" id="lightboxPrev" onclick="event.stopPropagation(); lightboxPrev()">‹</button>
+  <button class="lightbox-nav next" id="lightboxNext" onclick="event.stopPropagation(); lightboxNext()">›</button>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toastContainer"></div>
+
+<script>
+/* ================================================================
+   GLOBAL STATE
+   ================================================================ */
+const API = '';
+let currentUser = null;
+let authToken = null;
+let allUsers = [];
+let diaries = [];
+
+/* ================================================================
+   AUTH
+   ================================================================ */
+async function doLogin() {
+  const nickname = document.getElementById('nicknameInput').value.trim();
+  if (!nickname) {
+    document.getElementById('loginError').textContent = '请输入昵称 ♥';
+    return;
+  }
+  const colorDot = document.querySelector('#colorPicker .color-dot.selected');
+  const color = colorDot ? colorDot.dataset.color : '#e8a0a0';
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = '进入中...';
+  document.getElementById('loginError').textContent = '';
+
+  try {
+    const resp = await fetch(API + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname, color })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '登录失败');
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('diary_token', authToken);
+    localStorage.setItem('diary_user', JSON.stringify(currentUser));
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('appContainer').classList.add('visible');
+    await loadUsers();
+    await loadDiaries();
+    renderUsersBar();
+  } catch (err) {
+    document.getElementById('loginError').textContent = err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ 进 入 ✦';
+  }
+}
+
+function doLogout() {
+  authToken = null;
+  currentUser = null;
+  allUsers = [];
+  diaries = [];
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('appContainer').classList.remove('visible');
+  document.getElementById('nicknameInput').value = '';
+  document.getElementById('loginError').textContent = '';
+  // Show clear button if session data exists
+  document.getElementById('clearSessionBtn').style.display =
+    (localStorage.getItem('diary_token') || localStorage.getItem('diary_user')) ? '' : 'none';
+  document.getElementById('loginDeleteBtn').style.display =
+    (localStorage.getItem('diary_token') && localStorage.getItem('diary_user')) ? '' : 'none';
+}
+
+async function deleteAccount() {
+  if (!confirm('确定删除你的账号和所有日记吗？此操作不可撤销。')) return;
+  try {
+    const resp = await fetch(API + '/api/users/me', { method: 'DELETE', headers: apiHeaders() });
+    if (!resp.ok) { const data = await resp.json(); throw new Error(data.error); }
+    showToast('账号已删除');
+    doLogout();
+    localStorage.removeItem('diary_token');
+    localStorage.removeItem('diary_user');
+    document.getElementById('clearSessionBtn').style.display = 'none';
+    document.getElementById('loginDeleteBtn').style.display = 'none';
+  } catch (err) { showToast(err.message); }
+}
+
+document.getElementById('colorPicker').addEventListener('click', function(e) {
+  if (e.target.classList.contains('color-dot')) {
+    this.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    e.target.classList.add('selected');
+  }
+});
+
+document.getElementById('nicknameInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* Auto login */
+(function autoLogin() {
+  const tok = localStorage.getItem('diary_token');
+  const usr = localStorage.getItem('diary_user');
+  if (tok && usr) {
+    authToken = tok;
+    currentUser = JSON.parse(usr);
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('appContainer').classList.add('visible');
+    loadUsers().then(() => { renderUsersBar(); return loadDiaries(); });
+  }
+  // Always show clear/delete buttons if session exists
+  if (tok || usr) {
+    document.getElementById('clearSessionBtn').style.display = '';
+  }
+  if (tok && usr) {
+    document.getElementById('loginDeleteBtn').style.display = '';
+  }
+})();
+
+function clearSession() {
+  localStorage.removeItem('diary_token');
+  localStorage.removeItem('diary_user');
+  authToken = null;
+  currentUser = null;
+  document.getElementById('clearSessionBtn').style.display = 'none';
+  document.getElementById('nicknameInput').value = '';
+  document.getElementById('loginError').textContent = '已清除登录记录';
+}
+
+/* ================================================================
+   API HELPERS
+   ================================================================ */
+function apiHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
+}
+
+async function loadUsers() {
+  try {
+    const resp = await fetch(API + '/api/users', { headers: apiHeaders() });
+    if (resp.ok) allUsers = await resp.json();
+  } catch (e) {}
+}
+
+async function loadDiaries() {
+  try {
+    const resp = await fetch(API + '/api/diaries', { headers: apiHeaders() });
+    if (resp.ok) diaries = await resp.json();
+    renderDiaries();
+  } catch (e) {
+    showToast('加载日记失败，请检查网络');
+  }
+}
+
+function renderUsersBar() {
+  const bar = document.getElementById('usersBar');
+  bar.innerHTML = allUsers.map(u => `
+    <div class="user-avatar ${u.id === currentUser.id ? 'me' : ''}"
+         style="background:${u.avatar_color}"
+         title="${u.nickname}${u.id === currentUser.id ? '（我）' : ''}">
+      ${u.nickname[0]}
+    </div>
+  `).join('');
+}
+
+/* ================================================================
+   EDITOR STATE
+   ================================================================ */
+let editorState = { id: null, date: '', title: '', mood: '', sleepHours: '', sleepScore: 0, workout: '', content: '', photos: [] };
+
+function resetEditorState() {
+  editorState = { id: null, date: new Date().toISOString().split('T')[0], title: '', mood: '', sleepHours: '', sleepScore: 0, workout: '', content: '', photos: [] };
+}
+
+function openEditor(diaryId = null) {
+  if (diaryId !== null) {
+    const diary = diaries.find(d => d.id === diaryId);
+    if (!diary) return;
+    if (!diary.is_owner) { showToast('只能编辑自己的日记 ♥'); return; }
+    editorState = {
+      id: diary.id, date: diary.date, title: diary.title, mood: diary.mood || '',
+      content: diary.content, photos: [...(diary.photos || [])]
+    };
+    editorState.sleepHours = diary.sleep_hours || '';
+    editorState.sleepScore = diary.sleep_score || 0;
+    editorState.workout = diary.workout || '';
+    document.getElementById('modalTitle').textContent = '✎ 编辑日记';
+    document.getElementById('saveBtn').textContent = '更新';
+  } else {
+    resetEditorState();
+    document.getElementById('modalTitle').textContent = '✎ 新日记';
+    document.getElementById('saveBtn').textContent = '保存';
+  }
+  document.getElementById('editId').value = editorState.id || '';
+  document.getElementById('diaryDate').value = editorState.date;
+  document.getElementById('diaryTitle').value = editorState.title;
+  document.getElementById('diaryContent').value = editorState.content;
+  document.getElementById('sleepHours').value = editorState.sleepHours || '';
+  document.getElementById('workoutText').value = editorState.workout || '';
+  renderSleepStars(editorState.sleepScore || 0);
+  document.querySelectorAll('.mood-option').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.mood === editorState.mood);
+  });
+  renderPhotoPreviews();
+  document.getElementById('editorModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditor() {
+  document.getElementById('editorModal').style.display = 'none';
+  document.body.style.overflow = '';
+  resetEditorState();
+  renderPhotoPreviews();
+}
+
+function closeEditorIfOverlay(e) {
+  if (e.target === document.getElementById('editorModal')) closeEditor();
+}
+
+function toggleMood(btn) {
+  const mood = btn.dataset.mood;
+  if (editorState.mood === mood) { editorState.mood = ''; btn.classList.remove('selected'); }
+  else { editorState.mood = mood; document.querySelectorAll('.mood-option').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }
+}
+
+// Sleep star rating
+document.getElementById('sleepStars').addEventListener('click', function(e) {
+  const star = e.target.closest('[data-star]');
+  if (!star) return;
+  const val = parseInt(star.dataset.star);
+  editorState.sleepScore = editorState.sleepScore === val ? 0 : val;
+  renderSleepStars(editorState.sleepScore);
+});
+
+function renderSleepStars(score) {
+  document.querySelectorAll('#sleepStars [data-star]').forEach(s => {
+    const v = parseInt(s.dataset.star);
+    s.style.opacity = v <= score ? '1' : '0.25';
+    s.style.color = v <= score ? '#e8b0a0' : '#c4b5a5';
+  });
+}
+
+/* ================================================================
+   PHOTO HANDLING
+   ================================================================ */
+function handleDragOver(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('photoUploadArea').classList.add('drag-over'); }
+function handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('photoUploadArea').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('photoUploadArea').classList.remove('drag-over');
+  const files = Array.from(e.dataTransfer.files);
+  if (files.length > 0) addPhotos(files);
+}
+
+function handleFileSelect(e) {
+  const files = Array.from(e.target.files);
+  if (files.length > 0) addPhotos(files);
+  e.target.value = '';
+}
+
+function compressImage(dataUrl, maxWidth, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = function() {
+      if (img.width <= maxWidth) { resolve(dataUrl); return; }
+      const canvas = document.createElement('canvas');
+      const ratio = maxWidth / img.width;
+      canvas.width = maxWidth;
+      canvas.height = Math.round(img.height * ratio);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = function() { resolve(dataUrl); };
+    img.src = dataUrl;
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addPhotos(files) {
+  const maxPhotos = 9;
+  const imageFiles = files.filter(f => f.type.startsWith('image/'));
+  if (imageFiles.length === 0) { showToast('请选择图片文件'); return; }
+  const remaining = maxPhotos - editorState.photos.length;
+  const toAdd = imageFiles.slice(0, remaining);
+  if (toAdd.length === 0) { showToast('最多添加 9 张照片'); return; }
+
+  const grid = document.getElementById('photoPreviewGrid');
+  grid.innerHTML = '<div class="uploading-indicator">♡ 处理中...</div>';
+
+  try {
+    const results = await Promise.all(
+      toAdd.map(async (file) => {
+        const dataUrl = await readFileAsDataURL(file);
+        return await compressImage(dataUrl, 1200, 0.7);
+      })
+    );
+    editorState.photos.push(...results);
+    renderPhotoPreviews();
+  } catch (err) {
+    showToast('照片处理失败，请重试');
+    renderPhotoPreviews();
+  }
+}
+
+function removePhoto(index) { editorState.photos.splice(index, 1); renderPhotoPreviews(); }
+
+function renderPhotoPreviews() {
+  const grid = document.getElementById('photoPreviewGrid');
+  if (editorState.photos.length === 0) { grid.innerHTML = ''; return; }
+  grid.innerHTML = editorState.photos.map((photo, i) => `
+    <div class="photo-preview-item">
+      <img src="${photo}" alt="照片 ${i+1}">
+      <button class="photo-remove-btn" onclick="event.stopPropagation(); removePhoto(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('paste', function(e) {
+  const modal = document.getElementById('editorModal');
+  if (modal.style.display !== 'flex') return;
+  if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) return;
+  const items = Array.from(e.clipboardData.items);
+  const imageFiles = items.filter(item => item.type.startsWith('image/')).map(item => item.getAsFile());
+  if (imageFiles.length > 0) { e.preventDefault(); addPhotos(imageFiles); }
+});
+
+/* ================================================================
+   SAVE & DELETE
+   ================================================================ */
+async function saveDiary() {
+  const date = document.getElementById('diaryDate').value;
+  const title = document.getElementById('diaryTitle').value.trim();
+  const content = document.getElementById('diaryContent').value.trim();
+  const sleepHours = document.getElementById('sleepHours').value;
+
+  const workoutText = document.getElementById('workoutText').value.trim();
+
+  if (!title) { showToast('请输入标题'); return; }
+  if (!content) { showToast('请输入内容'); return; }
+
+  const payload = { date: date || new Date().toISOString().split('T')[0], title, mood: editorState.mood, sleep_hours: sleepHours || null, sleep_score: editorState.sleepScore || null, workout: workoutText || null, content, photos: editorState.photos };
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+
+  try {
+    let resp;
+    if (editorState.id) {
+      resp = await fetch(API + '/api/diaries/' + editorState.id, { method: 'PUT', headers: apiHeaders(), body: JSON.stringify(payload) });
+    } else {
+      resp = await fetch(API + '/api/diaries', { method: 'POST', headers: apiHeaders(), body: JSON.stringify(payload) });
+    }
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '保存失败');
+    closeEditor();
+    await loadDiaries();
+    showToast(editorState.id ? '日记已更新 ♥' : '已记录这一刻 ♥');
+  } catch (err) {
+    showToast(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editorState.id ? '更新' : '保存';
+  }
+}
+
+async function deleteDiary(id) {
+  if (!confirm('确定删除这篇日记吗？')) return;
+  try {
+    const resp = await fetch(API + '/api/diaries/' + id, { method: 'DELETE', headers: apiHeaders() });
+    if (!resp.ok) { const data = await resp.json(); throw new Error(data.error || '删除失败'); }
+    await loadDiaries();
+    showToast('日记已删除');
+  } catch (err) { showToast(err.message); }
+}
+
+/* ================================================================
+   DETAIL MODAL
+   ================================================================ */
+let detailDiary = null;
+
+function openDetail(diaryId) {
+  const diary = diaries.find(d => d.id === diaryId);
+  if (!diary) return;
+  detailDiary = diary;
+
+  document.getElementById('detailTitle').textContent = diary.title;
+  document.getElementById('detailAuthorDot').style.background = diary.author_color;
+  document.getElementById('detailAuthor').textContent = diary.author_name;
+  document.getElementById('detailDate').textContent = formatDate(diary.date) + ' ' + getDayOfWeek(diary.date);
+  document.getElementById('detailContent').textContent = diary.content;
+
+  // Mood
+  const moodEl = document.getElementById('detailMood');
+  if (diary.mood) {
+    moodEl.style.display = '';
+    moodEl.textContent = getMoodEmoji(diary.mood) + ' ' + getMoodLabel(diary.mood);
+    moodEl.className = '';
+    moodEl.classList.add('mood-tag', diary.mood);
+  } else { moodEl.style.display = 'none'; }
+
+  // Sleep
+  const sleepEl = document.getElementById('detailSleep');
+  const sh = diary.sleep_hours;
+  const ss = diary.sleep_score;
+  if (sh || ss) {
+    sleepEl.style.display = '';
+    let txt = '😴 ';
+    if (sh) txt += sh + 'h';
+    if (ss) txt += ' ' + '★'.repeat(ss) + '☆'.repeat(5 - ss);
+    sleepEl.textContent = txt;
+  } else { sleepEl.style.display = 'none'; }
+
+  // Workout
+  const woEl = document.getElementById('detailWorkout');
+  if (diary.workout) {
+    woEl.style.display = '';
+    woEl.textContent = '🏃 ' + diary.workout;
+  } else { woEl.style.display = 'none'; }
+
+  // Photos
+  const photosDiv = document.getElementById('detailPhotos');
+  const swipeDiv = document.getElementById('detailPhotoSwipe');
+  if (diary.photos && diary.photos.length > 0) {
+    photosDiv.style.display = 'block';
+    swipeDiv.innerHTML = diary.photos.map((p, i) => `
+      <div style="min-width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;cursor:pointer"
+           onclick="event.stopPropagation();openLightbox(${JSON.stringify(diary.photos)},${i})">
+        <img src="${p}" style="width:100%;max-height:400px;object-fit:contain;display:block">
+      </div>
+    `).join('');
+    swipeDiv.scrollLeft = 0;
+    updateDetailPhotoNav();
+    renderDetailPhotoDots();
+  } else {
+    photosDiv.style.display = 'none';
+  }
+
+  // Actions (only for owner)
+  document.getElementById('detailActions').style.display = diary.is_owner ? 'flex' : 'none';
+
+  document.getElementById('detailModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').style.display = 'none';
+  document.body.style.overflow = '';
+  detailDiary = null;
+}
+
+function closeDetailIfOverlay(e) {
+  if (e.target === document.getElementById('detailModal')) closeDetail();
+}
+
+function editDetailDiary() {
+  closeDetail();
+  if (detailDiary) openEditor(detailDiary.id);
+}
+
+async function deleteDetailDiary() {
+  if (!detailDiary) return;
+  closeDetail();
+  await deleteDiary(detailDiary.id);
+}
+
+// Detail photo swipe
+function detailPhotoPrev() {
+  const swipe = document.getElementById('detailPhotoSwipe');
+  const w = swipe.clientWidth;
+  swipe.scrollBy({ left: -w, behavior: 'smooth' });
+}
+
+function detailPhotoNext() {
+  const swipe = document.getElementById('detailPhotoSwipe');
+  const w = swipe.clientWidth;
+  swipe.scrollBy({ left: w, behavior: 'smooth' });
+}
+
+function updateDetailPhotoNav() {
+  const swipe = document.getElementById('detailPhotoSwipe');
+  const photos = detailDiary?.photos || [];
+  document.getElementById('detailPhotoPrev').style.display = photos.length > 1 ? 'flex' : 'none';
+  document.getElementById('detailPhotoNext').style.display = photos.length > 1 ? 'flex' : 'none';
+}
+
+function renderDetailPhotoDots() {
+  const photos = detailDiary?.photos || [];
+  const dotsDiv = document.getElementById('detailPhotoDots');
+  if (photos.length <= 1) { dotsDiv.innerHTML = ''; return; }
+  dotsDiv.innerHTML = photos.map((_, i) =>
+    `<button class="detail-photo-dot" onclick="event.stopPropagation();detailPhotoGoTo(${i})"></button>`
+  ).join('');
+  updateDetailActiveDot();
+}
+
+function detailPhotoGoTo(index) {
+  const swipe = document.getElementById('detailPhotoSwipe');
+  swipe.scrollTo({ left: index * swipe.clientWidth, behavior: 'smooth' });
+}
+
+function updateDetailActiveDot() {
+  const swipe = document.getElementById('detailPhotoSwipe');
+  const dots = document.querySelectorAll('#detailPhotoDots .detail-photo-dot');
+  if (!dots.length) return;
+  const idx = Math.round(swipe.scrollLeft / swipe.clientWidth);
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+}
+
+document.getElementById('detailPhotoSwipe').addEventListener('scroll', updateDetailActiveDot);
+
+/* ================================================================
+   RENDER
+   ================================================================ */
+function renderDiaries() {
+  const grid = document.getElementById('diaryGrid');
+  const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+  let filtered = diaries;
+  if (query) {
+    filtered = diaries.filter(d =>
+      d.title.toLowerCase().includes(query) || d.content.toLowerCase().includes(query) ||
+      d.author_name.toLowerCase().includes(query) || (d.mood && getMoodLabel(d.mood).includes(query))
+    );
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-illustration">♡</div>
+        <p class="empty-text">${query ? '没有找到相关日记' : '还没有写过日记'}</p>
+        <p class="empty-sub">${query ? '换个关键词试试' : '写下今天的心情吧 ♥'}</p>
+        ${!query ? '<button class="btn btn-primary" onclick="openEditor()">✎ 写第一篇日记</button>' : ''}
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((diary) => {
+    const hasPhotos = diary.photos && diary.photos.length > 0;
+    const photoCount = hasPhotos ? diary.photos.length : 0;
+    let imageHTML = '';
+    if (hasPhotos) {
+      let gridClass = 'single', displayPhotos = diary.photos, showMore = false;
+      if (photoCount === 1) gridClass = 'single';
+      else if (photoCount === 2) gridClass = 'double';
+      else if (photoCount === 3) gridClass = 'triple';
+      else { gridClass = 'multi'; displayPhotos = diary.photos.slice(0, 3); showMore = true; }
+      imageHTML = `
+        <div class="card-images ${gridClass}">
+          ${displayPhotos.map((p, i) => `
+            <div class="card-img-wrap" onclick="event.stopPropagation(); openLightbox(${JSON.stringify(diary.photos)}, ${i})">
+              <img src="${p}" alt="照片 ${i+1}" loading="lazy">
+              ${showMore && i === 2 ? `<div class="more-badge">+${photoCount - 3}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    const moodHTML = diary.mood ? `
+      <div class="card-mood-tags">
+        <span class="mood-tag ${diary.mood}">${getMoodEmoji(diary.mood)} ${getMoodLabel(diary.mood)}</span>
+      </div>` : '';
+
+    return `
+      <div class="diary-card" onclick="openDetail('${diary.id}')">
+        <div class="card-author-strip" style="background:${diary.author_color}"></div>
+        ${imageHTML}
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-date">${formatDate(diary.date)} ${getDayOfWeek(diary.date)}</span>
+            <span class="card-author">
+              <span class="card-author-dot" style="background:${diary.author_color}"></span>
+              ${escapeHTML(diary.author_name)}
+            </span>
+          </div>
+          <h3 class="card-title">${escapeHTML(diary.title)}</h3>
+          ${moodHTML}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  return `${parts[0]}年${parseInt(parts[1])}月${parseInt(parts[2])}日`;
+}
+function getDayOfWeek(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+}
+function getMoodEmoji(mood) {
+  const map = { happy:'😊', calm:'😌', energy:'⚡', love:'💕', fresh:'🌿', think:'🤔' };
+  return map[mood] || '';
+}
+function getMoodLabel(mood) {
+  const map = { happy:'开心', calm:'平静', energy:'元气', love:'心动', fresh:'清新', think:'沉思' };
+  return map[mood] || mood;
+}
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function showToast(msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2200);
+}
+
+/* ================================================================
+   LIGHTBOX (swipe gallery)
+   ================================================================ */
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+let lightboxTouchStartX = 0;
+
+function openLightbox(photos, index) {
+  lightboxPhotos = photos;
+  lightboxIndex = index;
+  showLightboxImage();
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  updateLightboxNav();
+  renderLightboxDots();
+}
+
+function showLightboxImage() {
+  document.getElementById('lightboxImg').src = lightboxPhotos[lightboxIndex];
+}
+
+function updateLightboxNav() {
+  document.getElementById('lightboxPrev').disabled = lightboxIndex <= 0;
+  document.getElementById('lightboxNext').disabled = lightboxIndex >= lightboxPhotos.length - 1;
+  // Hide nav if only 1 photo
+  const showNav = lightboxPhotos.length > 1;
+  document.getElementById('lightboxPrev').style.display = showNav ? 'flex' : 'none';
+  document.getElementById('lightboxNext').style.display = showNav ? 'flex' : 'none';
+}
+
+function renderLightboxDots() {
+  const dots = document.getElementById('lightboxDots');
+  if (lightboxPhotos.length <= 1) { dots.innerHTML = ''; return; }
+  dots.innerHTML = lightboxPhotos.map((_, i) =>
+    `<button class="lightbox-dot${i === lightboxIndex ? ' active' : ''}" onclick="event.stopPropagation(); lightboxGoTo(${i})"></button>`
+  ).join('');
+}
+
+function lightboxPrev() {
+  if (lightboxIndex > 0) {
+    lightboxIndex--;
+    showLightboxImage();
+    updateLightboxNav();
+    renderLightboxDots();
+  }
+}
+
+function lightboxNext() {
+  if (lightboxIndex < lightboxPhotos.length - 1) {
+    lightboxIndex++;
+    showLightboxImage();
+    updateLightboxNav();
+    renderLightboxDots();
+  }
+}
+
+function lightboxGoTo(index) {
+  lightboxIndex = index;
+  showLightboxImage();
+  updateLightboxNav();
+  renderLightboxDots();
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+  lightboxPhotos = [];
+  lightboxIndex = 0;
+}
+
+// Click overlay background to close
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// Touch swipe
+document.getElementById('lightbox').addEventListener('touchstart', function(e) {
+  lightboxTouchStartX = e.touches[0].clientX;
+});
+
+document.getElementById('lightbox').addEventListener('touchend', function(e) {
+  const diff = lightboxTouchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 60) {
+    if (diff > 0) lightboxNext();
+    else lightboxPrev();
+  }
+});
+
+/* ================================================================
+   KEYBOARD
+   ================================================================ */
+document.addEventListener('keydown', function(e) {
+  const lightbox = document.getElementById('lightbox');
+  const editor = document.getElementById('editorModal');
+  const detail = document.getElementById('detailModal');
+
+  if (e.key === 'Escape') {
+    if (lightbox.style.display === 'flex') closeLightbox();
+    else if (detail.style.display === 'flex') closeDetail();
+    else if (editor.style.display === 'flex') closeEditor();
+  }
+
+  // Arrow keys for lightbox navigation
+  if (lightbox.style.display === 'flex') {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxPrev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); lightboxNext(); }
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (editor.style.display === 'flex') { e.preventDefault(); saveDiary(); }
+  }
+});
+</script>
+
+</body>
+</html>
