@@ -418,6 +418,9 @@ body {
           <input type="text" class="search-input" placeholder="搜索日记..." id="searchInput" oninput="renderDiaries()">
         </div>
         <button class="btn btn-primary" onclick="openEditor()" title="写日记">✎</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" title="导入备份">📥</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportBackup()" title="导出备份">📤</button>
+        <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" class="hidden-file-input">
       </div>
     </div>
   </header>
@@ -797,6 +800,45 @@ document.addEventListener('keydown', function(e) {
   if (lb.style.display === 'flex') { if (e.key === 'ArrowLeft') { e.preventDefault(); lightboxPrev(); } if (e.key === 'ArrowRight') { e.preventDefault(); lightboxNext(); } }
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && ed.style.display === 'flex') { e.preventDefault(); saveDiary(); }
 });
+
+/* Backup & Restore */
+function exportBackup() {
+  const data = JSON.stringify(loadDiaries(), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'jelly-star-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('备份已下载 ✦');
+}
+
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('格式错误');
+      const existing = loadDiaries();
+      const merged = [...data];
+      // Merge: overwrite by id, append new
+      existing.forEach(d => {
+        if (!merged.find(m => m.id === d.id)) merged.push(d);
+      });
+      saveDiaries(merged);
+      diaries = merged;
+      renderDiaries();
+      showToast('已导入 ' + data.length + ' 篇日记，共 ' + merged.length + ' 篇 ✦');
+    } catch(err) {
+      showToast('文件格式错误，请选择正确的备份文件');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
 
 renderDiaries();
 </script>
