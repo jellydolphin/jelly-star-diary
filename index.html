@@ -213,10 +213,10 @@ body {
 }
 .mood-tag.happy   { border-color: #e8b0a0; color: #b87070; background: rgba(232,160,160,0.06); }
 .mood-tag.calm    { border-color: #a0c8e0; color: #6a90a8; background: rgba(160,200,224,0.06); }
-.mood-tag.energy  { border-color: #e0c8a0; color: #a8906a; background: rgba(224,200,160,0.06); }
-.mood-tag.love    { border-color: #d0a8d0; color: #907090; background: rgba(208,160,208,0.06); }
-.mood-tag.fresh   { border-color: #a0d0b0; color: #6a9070; background: rgba(160,208,176,0.06); }
-.mood-tag.think   { border-color: #b0a8a0; color: #6a6058; background: rgba(176,168,160,0.06); }
+.mood-tag.anxious { border-color: #d0b8a0; color: #a08060; background: rgba(208,184,160,0.06); }
+.mood-tag.sad     { border-color: #b0b8d0; color: #6a6a90; background: rgba(176,184,208,0.06); }
+.mood-tag.tired   { border-color: #c0b8a8; color: #8a7a60; background: rgba(192,184,168,0.06); }
+.mood-tag.angry   { border-color: #d0a0a0; color: #a06060; background: rgba(208,160,160,0.06); }
 
 /* ============ EMPTY STATE ============ */
 .empty-state {
@@ -279,12 +279,12 @@ body {
   display: flex; align-items: center; gap: 4px;
 }
 .mood-option:hover { border-color: #c0a898; background: rgba(232, 196, 184, 0.06); }
-.mood-option.selected[data-mood="happy"]  { border-color: #e8b0a0; background: rgba(232,160,160,0.10); color: #b87070; }
-.mood-option.selected[data-mood="calm"]   { border-color: #a0c8e0; background: rgba(160,200,224,0.10); color: #6a90a8; }
-.mood-option.selected[data-mood="energy"] { border-color: #e0c8a0; background: rgba(224,200,160,0.10); color: #a8906a; }
-.mood-option.selected[data-mood="love"]   { border-color: #d0a8d0; background: rgba(208,160,208,0.10); color: #907090; }
-.mood-option.selected[data-mood="fresh"]  { border-color: #a0d0b0; background: rgba(160,208,176,0.10); color: #6a9070; }
-.mood-option.selected[data-mood="think"]  { border-color: #b0a8a0; background: rgba(176,168,160,0.10); color: #6a6058; }
+.mood-option.selected[data-mood="happy"]   { border-color: #e8b0a0; background: rgba(232,160,160,0.10); color: #b87070; }
+.mood-option.selected[data-mood="calm"]    { border-color: #a0c8e0; background: rgba(160,200,224,0.10); color: #6a90a8; }
+.mood-option.selected[data-mood="anxious"] { border-color: #d0b8a0; background: rgba(208,184,160,0.10); color: #a08060; }
+.mood-option.selected[data-mood="sad"]     { border-color: #b0b8d0; background: rgba(176,184,208,0.10); color: #6a6a90; }
+.mood-option.selected[data-mood="tired"]   { border-color: #c0b8a8; background: rgba(192,184,168,0.10); color: #8a7a60; }
+.mood-option.selected[data-mood="angry"]   { border-color: #d0a0a0; background: rgba(208,160,160,0.10); color: #a06060; }
 
 /* Photo upload */
 .photo-upload-area {
@@ -447,10 +447,10 @@ body {
         <div class="mood-selector" id="moodSelector">
           <button class="mood-option" data-mood="happy" onclick="toggleMood(this)">😊 开心</button>
           <button class="mood-option" data-mood="calm" onclick="toggleMood(this)">😌 平静</button>
-          <button class="mood-option" data-mood="energy" onclick="toggleMood(this)">⚡ 元气</button>
-          <button class="mood-option" data-mood="love" onclick="toggleMood(this)">💕 心动</button>
-          <button class="mood-option" data-mood="fresh" onclick="toggleMood(this)">🌿 清新</button>
-          <button class="mood-option" data-mood="think" onclick="toggleMood(this)">🤔 沉思</button>
+          <button class="mood-option" data-mood="anxious" onclick="toggleMood(this)">😰 焦虑</button>
+          <button class="mood-option" data-mood="sad" onclick="toggleMood(this)">😢 难过</button>
+          <button class="mood-option" data-mood="tired" onclick="toggleMood(this)">😮‍💨 疲惫</button>
+          <button class="mood-option" data-mood="angry" onclick="toggleMood(this)">😤 烦躁</button>
         </div>
       </div>
       <div class="form-group">
@@ -785,8 +785,8 @@ function renderDiaries() {
 /* Helpers */
 function formatDate(d) { if (!d) return ''; const p = d.split('-'); return `${p[0]}年${parseInt(p[1])}月${parseInt(p[2])}日`; }
 function getDayOfWeek(d) { if (!d) return ''; return ['周日','周一','周二','周三','周四','周五','周六'][new Date(d+'T00:00:00').getDay()]; }
-function getMoodEmoji(m) { return { happy:'😊', calm:'😌', energy:'⚡', love:'💕', fresh:'🌿', think:'🤔' }[m] || ''; }
-function getMoodLabel(m) { return { happy:'开心', calm:'平静', energy:'元气', love:'心动', fresh:'清新', think:'沉思' }[m] || m; }
+function getMoodEmoji(m) { return { happy:'😊', calm:'😌', anxious:'😰', sad:'😢', tired:'😮‍💨', angry:'😤' }[m] || ''; }
+function getMoodLabel(m) { return { happy:'开心', calm:'平静', anxious:'焦虑', sad:'难过', tired:'疲惫', angry:'烦躁' }[m] || m; }
 function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function showToast(msg) { const c = document.getElementById('toastContainer'); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; c.appendChild(t); setTimeout(() => t.remove(), 2200); }
 
