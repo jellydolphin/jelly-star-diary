@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jelly Star · 手帐日记</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 /* ============ RESET ============ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -380,6 +381,58 @@ body {
   .lightbox-nav { width: 36px; height: 36px; font-size: 15px; }
 }
 
+/* Login */
+.login-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: #faf6f0;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card {
+  background: #fffdf8; border: 1px solid #e8dcd0; border-radius: 20px;
+  padding: 48px 36px; width: 100%; max-width: 380px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.04);
+  text-align: center;
+}
+.login-card h2 {
+  font-family: 'Noto Serif SC', serif; font-size: 28px; font-weight: 600;
+  color: #5a4a3a; letter-spacing: 2px; margin-bottom: 4px;
+}
+.login-card .login-sub {
+  font-family: 'Noto Serif SC', serif; font-size: 14px; color: #8a7a6a; margin-bottom: 24px;
+}
+.login-card input {
+  width: 100%; font-family: 'Noto Sans SC', sans-serif; font-size: 15px;
+  padding: 12px 16px; border: 1.5px solid #e0d5c8; border-radius: 12px;
+  background: #faf7f2; color: #4a3f3a; outline: none; text-align: center; margin-bottom: 12px;
+}
+.login-card input:focus { border-color: #b8a090; background: #fffdf8; }
+.login-card input::placeholder { color: #a0a8b0; }
+.login-card .login-btn {
+  width: 100%; font-family: 'Noto Serif SC', serif; font-size: 16px;
+  padding: 12px; border: none; border-radius: 50px;
+  background: #e8c4b8; color: #5a4a3a; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(200, 160, 140, 0.25);
+  margin-top: 8px;
+}
+.login-card .login-btn:hover { background: #f0d4c8; }
+.login-card .login-error { color: #b87070; font-size: 13px; margin-top: 8px; min-height: 20px; font-family: 'Noto Sans SC', sans-serif; }
+.login-card .config-hint { font-size: 11px; color: #b0a090; margin-top: 8px; font-family: 'Noto Sans SC', sans-serif; }
+.login-card .config-hint a { color: #8a7a6a; }
+
+/* Header user info */
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.user-name { font-family: 'Noto Sans SC', sans-serif; font-size: 13px; color: #6a5a4a; }
+.btn-logout { font-family: 'Noto Sans SC', sans-serif; font-size: 12px; color: #9aa0a8; background: none; border: 1px solid #d5dbe3; border-radius: 50px; padding: 3px 10px; cursor: pointer; }
+.btn-logout:hover { color: #6b7d95; border-color: #8a9bb5; }
+
+/* Card author */
+.card-author { display: flex; align-items: center; gap: 4px; font-family: 'Noto Sans SC', sans-serif; font-size: 11px; color: #8a7a6a; }
+.card-author-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+/* Loading */
+.loading-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; font-family: 'Noto Serif SC', serif; font-size: 16px; color: #b0a090; }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -408,10 +461,29 @@ body {
 </head>
 <body>
 
+<!-- ===== LOGIN ===== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>Jelly Star</h2>
+    <div class="login-sub">✦ 两个人的共享日记本 ✦</div>
+    <input type="text" id="loginNickname" placeholder="你的昵称" maxlength="12" autocomplete="off">
+    <input type="text" id="loginSecret" placeholder="共享密码（两人填同一个）" maxlength="20" autocomplete="off">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">✦ 进 入 ✦</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="config-hint">
+      需要先创建 Supabase 项目。查看 <a href="https://github.com/jellydolphin/jelly-star-diary" target="_blank">GitHub README</a> 了解配置方法。
+    </div>
+  </div>
+</div>
+
 <div class="app-container">
   <header class="header">
     <div class="header-inner">
-      <span class="logo-text">Jelly Star</span>
+      <div class="user-info">
+        <span class="user-dot" id="myDot" style="background:#e8b0a0"></span>
+        <span class="user-name" id="myName"></span>
+        <span style="font-family:'Noto Serif SC',serif;font-size:20px;font-weight:600;color:#5a4a3a;margin-left:12px">Jelly Star</span>
+      </div>
       <div class="header-actions">
         <div class="search-wrap">
           <span class="search-icon">⌕</span>
@@ -421,6 +493,7 @@ body {
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()" title="导入备份">📥</button>
         <button class="btn btn-ghost btn-sm" onclick="exportBackup()" title="导出备份">📤</button>
         <input type="file" id="importFile" accept=".json" onchange="importBackup(event)" class="hidden-file-input">
+        <button class="btn-logout" onclick="doLogout()">退出</button>
       </div>
     </div>
   </header>
@@ -546,18 +619,175 @@ body {
 <div id="toastContainer"></div>
 
 <script>
-const STORAGE_KEY = 'jelly_star_diaries';
+/* ================================================================
+   SUPABASE CONFIG — 替换为你的 Supabase 项目信息
+   ================================================================ */
+const SUPABASE_URL = 'https://xxxxxxxxxxxx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
-function loadDiaries() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+/* ================================================================
+   GLOBAL STATE
+   ================================================================ */
+let supabase = null;
+let currentUser = { nickname: '', color: '#e8b0a0' };
+let diaries = [];
+let realtimeChannel = null;
+const USER_COLORS = ['#e8b0a0','#a0c8e0','#c4d8a0','#d0a8d0','#e0c8a0'];
+
+/* ================================================================
+   LOGIN
+   ================================================================ */
+async function doLogin() {
+  const nickname = document.getElementById('loginNickname').value.trim();
+  const secret = document.getElementById('loginSecret').value.trim();
+  if (!nickname) { document.getElementById('loginError').textContent = '请输入昵称'; return; }
+  if (!secret || secret.length < 3) { document.getElementById('loginError').textContent = '密码至少3位'; return; }
+  if (!SUPABASE_URL.includes('supabase.co')) {
+    document.getElementById('loginError').textContent = '请先配置 SUPABASE_URL 和 SUPABASE_KEY';
+    return;
+  }
+
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginBtn').textContent = '连接中...';
+  document.getElementById('loginError').textContent = '';
+
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Hash secret to a color index
+    const colorIdx = secret.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % USER_COLORS.length;
+    currentUser = { nickname, color: USER_COLORS[colorIdx] };
+
+    // Store login in localStorage for auto-login
+    localStorage.setItem('js_nickname', nickname);
+    localStorage.setItem('js_secret', secret);
+
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('myName').textContent = nickname;
+    document.getElementById('myDot').style.background = currentUser.color;
+
+    await loadDiaries();
+    subscribeRealtime();
+  } catch(err) {
+    document.getElementById('loginError').textContent = '连接失败：' + err.message;
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('loginBtn').textContent = '✦ 进 入 ✦';
+  }
 }
-function saveDiaries(arr) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); } catch(e) { showToast('存储空间不足，请清理照片'); }
+
+function doLogout() {
+  if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null; }
+  localStorage.removeItem('js_nickname');
+  localStorage.removeItem('js_secret');
+  supabase = null;
+  diaries = [];
+  currentUser = { nickname: '', color: '#e8b0a0' };
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginNickname').value = '';
+  document.getElementById('loginSecret').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = '✦ 进 入 ✦';
+  renderDiaries();
 }
 
-let diaries = loadDiaries();
+// Auto login
+(function() {
+  const nn = localStorage.getItem('js_nickname');
+  const sc = localStorage.getItem('js_secret');
+  if (nn && sc) {
+    document.getElementById('loginNickname').value = nn;
+    document.getElementById('loginSecret').value = sc;
+  }
+})();
 
-/* Editor state */
+/* ================================================================
+   SUPABASE CRUD
+   ================================================================ */
+async function loadDiaries() {
+  document.getElementById('diaryGrid').innerHTML = '<div class="loading-state">♡ 加载中...</div>';
+  try {
+    const { data, error } = await supabase
+      .from('diaries')
+      .select('*')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    diaries = data || [];
+    renderDiaries();
+  } catch(err) {
+    showToast('加载失败：' + err.message);
+    renderDiaries();
+  }
+}
+
+async function saveDiaryToDB(diary) {
+  try {
+    const record = {
+      id: diary.id,
+      author: currentUser.nickname,
+      author_color: currentUser.color,
+      date: diary.date,
+      title: diary.title,
+      mood: diary.mood || '',
+      sleep_hours: diary.sleepHours ? parseFloat(diary.sleepHours) : null,
+      sleep_score: diary.sleepScore || 0,
+      workout: diary.workout || '',
+      content: diary.content,
+      photos: JSON.stringify(diary.photos || [])
+    };
+    const { error } = await supabase.from('diaries').upsert(record, { onConflict: 'id' });
+    if (error) throw error;
+    return true;
+  } catch(err) {
+    showToast('保存失败：' + err.message);
+    return false;
+  }
+}
+
+async function deleteDiaryFromDB(id) {
+  try {
+    const { error } = await supabase.from('diaries').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  } catch(err) {
+    showToast('删除失败：' + err.message);
+    return false;
+  }
+}
+
+/* ================================================================
+   REALTIME SUBSCRIPTION
+   ================================================================ */
+function subscribeRealtime() {
+  if (realtimeChannel) { supabase.removeChannel(realtimeChannel); }
+  realtimeChannel = supabase
+    .channel('diary-changes')
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'diaries' },
+      (payload) => {
+        if (payload.eventType === 'INSERT') {
+          if (!diaries.find(d => d.id === payload.new.id)) {
+            diaries.push(payload.new);
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const idx = diaries.findIndex(d => d.id === payload.new.id);
+          if (idx >= 0) diaries[idx] = payload.new;
+          else diaries.push(payload.new);
+        } else if (payload.eventType === 'DELETE') {
+          diaries = diaries.filter(d => d.id !== payload.old.id);
+        }
+        renderDiaries();
+      }
+    )
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') console.log('Realtime connected');
+    });
+}
+
+/* ================================================================
+   EDITOR
+   ================================================================ */
 let editorState = { id: null, date: '', title: '', mood: '', sleepHours: '', sleepScore: 0, workout: '', content: '', photos: [] };
 function resetEditorState() {
   editorState = { id: null, date: new Date().toISOString().split('T')[0], title: '', mood: '', sleepHours: '', sleepScore: 0, workout: '', content: '', photos: [] };
@@ -567,7 +797,9 @@ function openEditor(diaryId = null) {
   if (diaryId !== null) {
     const diary = diaries.find(d => d.id === diaryId);
     if (!diary) return;
-    editorState = { id: diary.id, date: diary.date, title: diary.title, mood: diary.mood || '', sleepHours: diary.sleepHours || '', sleepScore: diary.sleepScore || 0, workout: diary.workout || '', content: diary.content, photos: [...(diary.photos || [])] };
+    if (diary.author !== currentUser.nickname) { showToast('只能编辑自己的日记'); return; }
+    const photos = typeof diary.photos === 'string' ? JSON.parse(diary.photos || '[]') : (diary.photos || []);
+    editorState = { id: diary.id, date: diary.date, title: diary.title, mood: diary.mood || '', sleepHours: diary.sleep_hours || '', sleepScore: diary.sleep_score || 0, workout: diary.workout || '', content: diary.content, photos };
     document.getElementById('modalTitle').textContent = '✎ 编辑日记';
     document.getElementById('saveBtn').textContent = '更新';
   } else {
@@ -588,12 +820,7 @@ function openEditor(diaryId = null) {
   document.body.style.overflow = 'hidden';
 }
 
-function closeEditor() {
-  document.getElementById('editorModal').style.display = 'none';
-  document.body.style.overflow = '';
-  resetEditorState();
-  renderPhotoPreviews();
-}
+function closeEditor() { document.getElementById('editorModal').style.display = 'none'; document.body.style.overflow = ''; resetEditorState(); renderPhotoPreviews(); }
 function closeEditorIfOverlay(e) { if (e.target === document.getElementById('editorModal')) closeEditor(); }
 
 function toggleMood(btn) {
@@ -622,29 +849,15 @@ function handleDragOver(e) { e.preventDefault(); e.stopPropagation(); document.g
 function handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('photoUploadArea').classList.remove('drag-over'); }
 function handleDrop(e) { e.preventDefault(); e.stopPropagation(); document.getElementById('photoUploadArea').classList.remove('drag-over'); const files = Array.from(e.dataTransfer.files); if (files.length > 0) addPhotos(files); }
 function handleFileSelect(e) { const files = Array.from(e.target.files); if (files.length > 0) addPhotos(files); e.target.value = ''; }
-
 function compressImage(dataUrl, maxWidth, quality) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = function() {
-      if (img.width <= maxWidth) { resolve(dataUrl); return; }
-      const canvas = document.createElement('canvas');
-      canvas.width = maxWidth; canvas.height = Math.round(img.height * maxWidth / img.width);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
+    img.onload = function() { if (img.width <= maxWidth) { resolve(dataUrl); return; } const c = document.createElement('canvas'); c.width = maxWidth; c.height = Math.round(img.height * maxWidth / img.width); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); resolve(c.toDataURL('image/jpeg', quality)); };
     img.onerror = function() { resolve(dataUrl); };
     img.src = dataUrl;
   });
 }
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+function readFileAsDataURL(file) { return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = (e) => resolve(e.target.result); r.onerror = reject; r.readAsDataURL(file); }); }
 async function addPhotos(files) {
   const maxPhotos = 9;
   const imageFiles = files.filter(f => f.type.startsWith('image/'));
@@ -653,11 +866,8 @@ async function addPhotos(files) {
   const toAdd = imageFiles.slice(0, remaining);
   if (toAdd.length === 0) { showToast('最多添加 9 张照片'); return; }
   document.getElementById('photoPreviewGrid').innerHTML = '<div class="uploading-indicator">♡ 处理中...</div>';
-  try {
-    const results = await Promise.all(toAdd.map(async f => compressImage(await readFileAsDataURL(f), 1200, 0.7)));
-    editorState.photos.push(...results);
-    renderPhotoPreviews();
-  } catch(err) { showToast('照片处理失败'); renderPhotoPreviews(); }
+  try { const results = await Promise.all(toAdd.map(async f => compressImage(await readFileAsDataURL(f), 1200, 0.7))); editorState.photos.push(...results); renderPhotoPreviews(); }
+  catch(err) { showToast('照片处理失败'); renderPhotoPreviews(); }
 }
 function removePhoto(index) { editorState.photos.splice(index, 1); renderPhotoPreviews(); }
 function renderPhotoPreviews() {
@@ -673,37 +883,33 @@ document.addEventListener('paste', function(e) {
 });
 
 /* Save */
-function saveDiary() {
+async function saveDiary() {
   const title = document.getElementById('diaryTitle').value.trim();
   const content = document.getElementById('diaryContent').value.trim();
   if (!title) { showToast('请输入标题'); return; }
   if (!content) { showToast('请输入内容'); return; }
   const diary = {
-    id: editorState.id || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    id: editorState.id || crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     date: document.getElementById('diaryDate').value || new Date().toISOString().split('T')[0],
     title, mood: editorState.mood,
     sleepHours: document.getElementById('sleepHours').value || '',
     sleepScore: editorState.sleepScore || 0,
     workout: document.getElementById('workoutText').value.trim(),
     content, photos: [...editorState.photos],
-    createdAt: editorState.id ? (diaries.find(d => d.id === editorState.id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+    author: currentUser.nickname, author_color: currentUser.color,
+    created_at: editorState.id ? (diaries.find(d => d.id === editorState.id)?.created_at || new Date().toISOString()) : new Date().toISOString()
   };
-  if (editorState.id) {
-    const idx = diaries.findIndex(d => d.id === editorState.id);
-    if (idx >= 0) { diary.createdAt = diaries[idx].createdAt; diaries[idx] = diary; }
-  } else { diaries.unshift(diary); }
-  saveDiaries(diaries);
+  const ok = await saveDiaryToDB(diary);
+  if (!ok) return;
   closeEditor();
-  renderDiaries();
   showToast(editorState.id ? '日记已更新' : '已记录这一刻 ✦');
 }
 
 /* Delete */
-function deleteDiary(id) {
+async function deleteDiary(id) {
   if (!confirm('确定删除这篇日记吗？')) return;
-  diaries = diaries.filter(d => d.id !== id);
-  saveDiaries(diaries);
-  renderDiaries();
+  const ok = await deleteDiaryFromDB(id);
+  if (!ok) return;
   showToast('日记已删除');
 }
 
@@ -714,27 +920,25 @@ function openDetail(id) {
   if (!diary) return;
   detailDiary = diary;
   document.getElementById('detailTitle').textContent = diary.title;
-  document.getElementById('detailDate').textContent = formatDate(diary.date) + ' ' + getDayOfWeek(diary.date);
+  document.getElementById('detailDate').textContent = formatDate(diary.date) + ' ' + getDayOfWeek(diary.date) + ' · ' + (diary.author || '');
   document.getElementById('detailContent').textContent = diary.content;
   const moodEl = document.getElementById('detailMood');
   if (diary.mood) { moodEl.style.display = ''; moodEl.textContent = getMoodEmoji(diary.mood) + ' ' + getMoodLabel(diary.mood); moodEl.className = 'mood-tag ' + diary.mood; }
   else { moodEl.style.display = 'none'; }
   const sleepEl = document.getElementById('detailSleep');
-  if (diary.sleepHours || diary.sleepScore) {
-    sleepEl.style.display = '';
-    let t = '😴 '; if (diary.sleepHours) t += diary.sleepHours + 'h'; if (diary.sleepScore) t += ' ' + '★'.repeat(diary.sleepScore) + '☆'.repeat(5 - diary.sleepScore);
-    sleepEl.textContent = t;
-  } else { sleepEl.style.display = 'none'; }
+  if (diary.sleep_hours || diary.sleep_score) { sleepEl.style.display = ''; let t = '😴 '; if (diary.sleep_hours) t += diary.sleep_hours + 'h'; if (diary.sleep_score) t += ' ' + '★'.repeat(diary.sleep_score) + '☆'.repeat(5 - diary.sleep_score); sleepEl.textContent = t; }
+  else { sleepEl.style.display = 'none'; }
   const woEl = document.getElementById('detailWorkout');
   if (diary.workout) { woEl.style.display = ''; woEl.textContent = '🏃 ' + diary.workout; }
   else { woEl.style.display = 'none'; }
   const photosDiv = document.getElementById('detailPhotos'), swipeDiv = document.getElementById('detailPhotoSwipe');
-  if (diary.photos && diary.photos.length > 0) {
+  const photos = typeof diary.photos === 'string' ? JSON.parse(diary.photos || '[]') : (diary.photos || []);
+  if (photos.length > 0) {
     photosDiv.style.display = 'block';
-    swipeDiv.innerHTML = diary.photos.map((p, i) => `<div style="min-width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="event.stopPropagation();openLightbox(${JSON.stringify(diary.photos)},${i})"><img src="${p}" style="width:100%;max-height:400px;object-fit:contain;display:block"></div>`).join('');
+    swipeDiv.innerHTML = photos.map((p, i) => `<div style="min-width:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="event.stopPropagation();openLightbox(${JSON.stringify(photos)},${i})"><img src="${p}" style="width:100%;max-height:400px;object-fit:contain;display:block"></div>`).join('');
     swipeDiv.scrollLeft = 0;
-    document.querySelector('.detail-photo-nav.prev').style.display = diary.photos.length > 1 ? 'flex' : 'none';
-    document.querySelector('.detail-photo-nav.next').style.display = diary.photos.length > 1 ? 'flex' : 'none';
+    document.querySelector('.detail-photo-nav.prev').style.display = photos.length > 1 ? 'flex' : 'none';
+    document.querySelector('.detail-photo-nav.next').style.display = photos.length > 1 ? 'flex' : 'none';
   } else { photosDiv.style.display = 'none'; }
   document.getElementById('detailModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -765,23 +969,24 @@ function renderDiaries() {
   const grid = document.getElementById('diaryGrid');
   const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
   let filtered = diaries;
-  if (query) filtered = diaries.filter(d => d.title.toLowerCase().includes(query) || d.content.toLowerCase().includes(query) || (d.mood && getMoodLabel(d.mood).includes(query)));
-  filtered.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  if (query) filtered = diaries.filter(d => d.title.toLowerCase().includes(query) || d.content.toLowerCase().includes(query) || (d.mood && getMoodLabel(d.mood).includes(query)) || (d.author && d.author.toLowerCase().includes(query)));
+  filtered.sort((a, b) => (b.date||'').localeCompare(a.date||'') || (b.created_at||'').localeCompare(a.created_at||''));
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="empty-illustration">♡</div><p class="empty-text">${query?'没有找到相关日记':'还没有写过日记'}</p><p class="empty-sub">${query?'换个关键词试试':'写下今天的心情吧'}</p>${!query?'<button class="btn btn-primary" onclick="openEditor()">✎ 写第一篇日记</button>':''}</div>`;
     return;
   }
   grid.innerHTML = filtered.map(diary => {
-    const hasPhotos = diary.photos && diary.photos.length > 0;
-    const pc = hasPhotos ? diary.photos.length : 0;
+    const photos = typeof diary.photos === 'string' ? JSON.parse(diary.photos || '[]') : (diary.photos || []);
+    const hasPhotos = photos.length > 0, pc = photos.length;
     let imgHTML = '';
     if (hasPhotos) {
-      let gc = 'single', dp = diary.photos, sm = false;
-      if (pc === 1) gc = 'single'; else if (pc === 2) gc = 'double'; else if (pc === 3) gc = 'triple'; else { gc = 'multi'; dp = diary.photos.slice(0, 3); sm = true; }
-      imgHTML = `<div class="card-images ${gc}">${dp.map((p,i) => `<div class="card-img-wrap" onclick="event.stopPropagation();openLightbox(${JSON.stringify(diary.photos)},${i})"><img src="${p}" alt="照片${i+1}" loading="lazy">${sm&&i===2?`<div class="more-badge">+${pc-3}</div>`:''}</div>`).join('')}</div>`;
+      let gc = 'single', dp = photos, sm = false;
+      if (pc === 1) gc = 'single'; else if (pc === 2) gc = 'double'; else if (pc === 3) gc = 'triple'; else { gc = 'multi'; dp = photos.slice(0, 3); sm = true; }
+      imgHTML = `<div class="card-images ${gc}">${dp.map((p,i) => `<div class="card-img-wrap" onclick="event.stopPropagation();openLightbox(${JSON.stringify(photos)},${i})"><img src="${p}" alt="照片${i+1}" loading="lazy">${sm&&i===2?`<div class="more-badge">+${pc-3}</div>`:''}</div>`).join('')}</div>`;
     }
     const moodHTML = diary.mood ? `<div class="card-mood-tags"><span class="mood-tag ${diary.mood}">${getMoodEmoji(diary.mood)} ${getMoodLabel(diary.mood)}</span></div>` : '';
-    return `<div class="diary-card" onclick="openDetail('${diary.id}')">${imgHTML}<div class="card-body"><span class="card-date">${formatDate(diary.date)} ${getDayOfWeek(diary.date)}</span><h3 class="card-title">${escapeHTML(diary.title)}</h3>${moodHTML}</div></div>`;
+    const authorHTML = diary.author ? `<div class="card-author"><span class="card-author-dot" style="background:${diary.author_color||'#e0d5c8'}"></span>${escapeHTML(diary.author)}</div>` : '';
+    return `<div class="diary-card" onclick="openDetail('${diary.id}')">${imgHTML}<div class="card-body"><div style="display:flex;justify-content:space-between;align-items:center"><span class="card-date">${formatDate(diary.date)} ${getDayOfWeek(diary.date)}</span>${authorHTML}</div><h3 class="card-title">${escapeHTML(diary.title)}</h3>${moodHTML}</div></div>`;
   }).join('');
 }
 
@@ -803,14 +1008,12 @@ document.addEventListener('keydown', function(e) {
 
 /* Backup & Restore */
 function exportBackup() {
-  const data = JSON.stringify(loadDiaries(), null, 2);
+  const data = JSON.stringify(diaries, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'jelly-star-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = 'jelly-star-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); URL.revokeObjectURL(url);
   showToast('备份已下载 ✦');
 }
 
@@ -818,28 +1021,34 @@ function importBackup(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev) {
+  reader.onload = async function(ev) {
     try {
       const data = JSON.parse(ev.target.result);
       if (!Array.isArray(data)) throw new Error('格式错误');
-      const existing = loadDiaries();
-      const merged = [...data];
-      // Merge: overwrite by id, append new
-      existing.forEach(d => {
-        if (!merged.find(m => m.id === d.id)) merged.push(d);
-      });
-      saveDiaries(merged);
-      diaries = merged;
-      renderDiaries();
-      showToast('已导入 ' + data.length + ' 篇日记，共 ' + merged.length + ' 篇 ✦');
-    } catch(err) {
-      showToast('文件格式错误，请选择正确的备份文件');
-    }
+      let count = 0;
+      for (const d of data) {
+        const record = {
+          id: d.id || (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)),
+          author: d.author || currentUser.nickname,
+          author_color: d.author_color || currentUser.color,
+          date: d.date, title: d.title, mood: d.mood || '',
+          sleep_hours: d.sleep_hours || d.sleepHours || null,
+          sleep_score: d.sleep_score || d.sleepScore || 0,
+          workout: d.workout || '', content: d.content,
+          photos: typeof d.photos === 'string' ? d.photos : JSON.stringify(d.photos || [])
+        };
+        const { error } = await supabase.from('diaries').upsert(record, { onConflict: 'id' });
+        if (!error) count++;
+      }
+      showToast('已导入 ' + count + ' 篇日记 ✦');
+      await loadDiaries();
+    } catch(err) { showToast('文件格式错误'); }
   };
   reader.readAsText(file);
   e.target.value = '';
 }
 
+/* Initial render */
 renderDiaries();
 </script>
 </body>
