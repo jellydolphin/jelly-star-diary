@@ -159,6 +159,81 @@ body {
   .search-input:focus { width: 180px; }
 }
 
+/* ============ TODO SECTION ============ */
+.todo-section {
+  background: #fffdf8;
+  border: 1px solid #e8dcd0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.03);
+}
+
+.todo-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px; cursor: pointer; user-select: none;
+}
+.todo-header:hover { background: rgba(232, 196, 184, 0.06); }
+
+.todo-title {
+  font-family: 'Noto Serif SC', serif; font-size: 17px; font-weight: 600;
+  color: #5a4a3a; letter-spacing: 1px;
+}
+
+.todo-toggle {
+  font-size: 18px; color: #c4b5a5;
+  transition: transform 0.25s ease;
+}
+.todo-toggle.open { transform: rotate(90deg); }
+
+.todo-body {
+  display: none;
+  padding: 0 22px 20px;
+}
+.todo-body.visible { display: block; }
+
+.todo-input-row {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+.todo-input-row input { flex: 1; }
+
+#todoList {
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.todo-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px;
+  font-family: 'Noto Sans SC', sans-serif; font-size: 14px; color: #4a3f3a;
+}
+.todo-item:hover { background: rgba(232, 196, 184, 0.05); }
+
+.todo-check {
+  width: 20px; height: 20px; border-radius: 4px;
+  border: 1.5px solid #d0c0b0; background: #fffdf8;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: transparent;
+}
+.todo-check:hover { border-color: #b0a090; }
+.todo-check.done {
+  background: #e8c4b8; border-color: #e8c4b8; color: #fff;
+}
+
+.todo-text {
+  flex: 1; word-break: break-word;
+}
+.todo-text.done {
+  text-decoration: line-through; color: #b0a090;
+}
+
+.todo-delete {
+  font-size: 14px; color: #c4b5a5; cursor: pointer;
+  background: none; border: none; padding: 2px 4px;
+  flex-shrink: 0; opacity: 0;
+}
+.todo-item:hover .todo-delete { opacity: 1; }
+.todo-delete:hover { color: #b87070; }
+
 /* ============ DIARY CARD ============ */
 .diary-card {
   background: #fffdf8;
@@ -500,6 +575,26 @@ body {
 
   <div class="diary-grid" id="diaryGrid"></div>
 </div>
+
+<!-- ===== TODO SECTION ===== -->
+<div class="app-container" style="margin-top:32px;margin-bottom:60px">
+  <div class="todo-section" id="todoSection">
+    <div class="todo-header" onclick="toggleTodo()">
+      <span class="todo-title">☐ 今日待办</span>
+      <span class="todo-toggle" id="todoToggleIcon">›</span>
+    </div>
+    <div class="todo-body" id="todoBody">
+      <div id="todoList"></div>
+      <div class="todo-input-row">
+        <input type="text" class="form-input" id="todoInput" placeholder="添加新事项..." onkeydown="if(event.key==='Enter')addTodo()">
+        <button class="btn btn-ghost btn-sm" onclick="addTodo()">+</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button class="btn btn-ghost btn-sm" onclick="copyTodoToDiary()" title="将未完成的待办复制到日记">📋 归总到日记</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearDoneTodos()" style="color:#b0a090">清除已完成</button>
+      </div>
+    </div>
+  </div>
 
 <!-- ===== EDITOR MODAL ===== -->
 <div class="modal-overlay" id="editorModal" style="display:none" onclick="closeEditorIfOverlay(event)">
@@ -1048,7 +1143,75 @@ function importBackup(e) {
   e.target.value = '';
 }
 
+/* ================================================================
+   TODO
+   ================================================================ */
+const TODO_KEY = 'jelly_star_todos';
+let todoList = [];
+let todoOpen = false;
+
+function loadTodos() {
+  try { todoList = JSON.parse(localStorage.getItem(TODO_KEY) || '[]'); } catch(e) { todoList = []; }
+}
+function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todoList)); }
+
+function toggleTodo() {
+  todoOpen = !todoOpen;
+  document.getElementById('todoBody').classList.toggle('visible', todoOpen);
+  document.getElementById('todoToggleIcon').classList.toggle('open', todoOpen);
+}
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  todoList.push({ id: Date.now().toString(36), text, done: false, date: new Date().toISOString().split('T')[0] });
+  input.value = '';
+  saveTodos();
+  renderTodos();
+}
+function toggleTodoItem(id) {
+  const item = todoList.find(t => t.id === id);
+  if (!item) return;
+  item.done = !item.done;
+  saveTodos();
+  renderTodos();
+}
+function deleteTodoItem(id) {
+  todoList = todoList.filter(t => t.id !== id);
+  saveTodos();
+  renderTodos();
+}
+function clearDoneTodos() {
+  todoList = todoList.filter(t => !t.done);
+  saveTodos();
+  renderTodos();
+}
+function copyTodoToDiary() {
+  const undone = todoList.filter(t => !t.done);
+  if (undone.length === 0) { showToast('没有未完成的待办事项'); return; }
+  const text = undone.map(t => (t.done ? '☑ ' : '☐ ') + t.text).join('\n');
+  navigator.clipboard.writeText('📋 今日待办：\n' + text).then(() => {
+    showToast('已复制 ' + undone.length + ' 条待办到剪贴板，粘贴到日记中即可');
+  }).catch(() => showToast('复制失败，请手动选择'));
+}
+function renderTodos() {
+  const container = document.getElementById('todoList');
+  if (todoList.length === 0) {
+    container.innerHTML = '<div style="font-family:\'Noto Sans SC\',sans-serif;font-size:13px;color:#c4b5a5;padding:8px 0">暂无待办事项</div>';
+    return;
+  }
+  container.innerHTML = todoList.map(t => `
+    <div class="todo-item">
+      <button class="todo-check${t.done?' done':''}" onclick="toggleTodoItem('${t.id}')">${t.done?'✓':''}</button>
+      <span class="todo-text${t.done?' done':''}">${escapeHTML(t.text)}</span>
+      <button class="todo-delete" onclick="deleteTodoItem('${t.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
 /* Initial render */
+loadTodos();
+renderTodos();
 renderDiaries();
 </script>
 </body>
