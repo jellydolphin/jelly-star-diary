@@ -1075,8 +1075,8 @@ function openDetail(id) {
 }
 function closeDetail() { document.getElementById('detailModal').style.display = 'none'; document.body.style.overflow = ''; detailDiary = null; }
 function closeDetailIfOverlay(e) { if (e.target === document.getElementById('detailModal')) closeDetail(); }
-function editDetailDiary() { closeDetail(); if (detailDiary) openEditor(detailDiary.id); }
-function deleteDetailDiary() { if (!detailDiary) return; closeDetail(); deleteDiary(detailDiary.id); }
+function editDetailDiary() { const id = detailDiary?.id; closeDetail(); if (id) openEditor(id); }
+function deleteDetailDiary() { const id = detailDiary?.id; closeDetail(); if (id) deleteDiary(id); }
 function detailPhotoPrev() { document.getElementById('detailPhotoSwipe').scrollBy({ left: -document.getElementById('detailPhotoSwipe').clientWidth, behavior: 'smooth' }); }
 function detailPhotoNext() { document.getElementById('detailPhotoSwipe').scrollBy({ left: document.getElementById('detailPhotoSwipe').clientWidth, behavior: 'smooth' }); }
 
