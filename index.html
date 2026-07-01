@@ -746,7 +746,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 /* ================================================================
    GLOBAL STATE
    ================================================================ */
-let supabase = null;
+let supabaseClient = null;
 let currentUser = { nickname: '', color: '#e8b0a0' };
 let diaries = [];
 let realtimeChannel = null;
@@ -770,7 +770,7 @@ async function doLogin() {
   document.getElementById('loginError').textContent = '';
 
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Hash secret to a color index
     const colorIdx = secret.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % USER_COLORS.length;
@@ -794,10 +794,10 @@ async function doLogin() {
 }
 
 function doLogout() {
-  if (realtimeChannel) { supabase.removeChannel(realtimeChannel); realtimeChannel = null; }
+  if (realtimeChannel) { supabaseClient.removeChannel(realtimeChannel); realtimeChannel = null; }
   localStorage.removeItem('js_nickname');
   localStorage.removeItem('js_secret');
-  supabase = null;
+  supabaseClient = null;
   diaries = [];
   currentUser = { nickname: '', color: '#e8b0a0' };
   document.getElementById('loginOverlay').style.display = 'flex';
@@ -834,7 +834,7 @@ function clearLoginData() {
 async function loadDiaries() {
   document.getElementById('diaryGrid').innerHTML = '<div class="loading-state">♡ 加载中...</div>';
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('diaries')
       .select('*')
       .order('date', { ascending: false })
@@ -863,7 +863,7 @@ async function saveDiaryToDB(diary) {
       content: diary.content,
       photos: JSON.stringify(diary.photos || [])
     };
-    const { error } = await supabase.from('diaries').upsert(record, { onConflict: 'id' });
+    const { error } = await supabaseClient.from('diaries').upsert(record, { onConflict: 'id' });
     if (error) throw error;
     return true;
   } catch(err) {
@@ -874,7 +874,7 @@ async function saveDiaryToDB(diary) {
 
 async function deleteDiaryFromDB(id) {
   try {
-    const { error } = await supabase.from('diaries').delete().eq('id', id);
+    const { error } = await supabaseClient.from('diaries').delete().eq('id', id);
     if (error) throw error;
     return true;
   } catch(err) {
@@ -887,8 +887,8 @@ async function deleteDiaryFromDB(id) {
    REALTIME SUBSCRIPTION
    ================================================================ */
 function subscribeRealtime() {
-  if (realtimeChannel) { supabase.removeChannel(realtimeChannel); }
-  realtimeChannel = supabase
+  if (realtimeChannel) { supabaseClient.removeChannel(realtimeChannel); }
+  realtimeChannel = supabaseClient
     .channel('diary-changes')
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'diaries' },
@@ -1164,7 +1164,7 @@ function importBackup(e) {
           workout: d.workout || '', content: d.content,
           photos: typeof d.photos === 'string' ? d.photos : JSON.stringify(d.photos || [])
         };
-        const { error } = await supabase.from('diaries').upsert(record, { onConflict: 'id' });
+        const { error } = await supabaseClient.from('diaries').upsert(record, { onConflict: 'id' });
         if (!error) count++;
       }
       showToast('已导入 ' + count + ' 篇日记 ✦');
