@@ -562,14 +562,11 @@ body {
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <h2>Jelly Star</h2>
-    <div class="login-sub">✦ 两个人的共享日记本 ✦</div>
+    <div class="login-sub">✦ 共享日记本 ✦</div>
     <input type="text" id="loginNickname" placeholder="你的昵称" maxlength="12" autocomplete="off">
-    <input type="text" id="loginSecret" placeholder="共享密码（两人填同一个）" maxlength="20" autocomplete="off">
+    <input type="text" id="loginSecret" placeholder="共享密码" maxlength="20" autocomplete="off">
     <button class="login-btn" id="loginBtn" onclick="doLogin()">✦ 进 入 ✦</button>
     <div class="login-error" id="loginError"></div>
-    <div class="config-hint">
-      需要先创建 Supabase 项目。查看 <a href="https://github.com/jellydolphin/jelly-star-diary" target="_blank">GitHub README</a> 了解配置方法。
-    </div>
   </div>
   <button class="clear-login-btn" onclick="clearLoginData()" title="清除登录记录">×</button>
 </div>
