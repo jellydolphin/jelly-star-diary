@@ -786,6 +786,7 @@ async function doLogin() {
 
     await loadDiaries();
     subscribeRealtime();
+    await loadTodos();
   } catch(err) {
     document.getElementById('loginError').textContent = '连接失败：' + err.message;
     document.getElementById('loginBtn').disabled = false;
@@ -1028,8 +1029,10 @@ async function saveDiary() {
   };
   const ok = await saveDiaryToDB(diary);
   if (!ok) return;
+  const wasEdit = !!editorState.id;
   closeEditor();
-  showToast(editorState.id ? '日记已更新' : '已记录这一刻 ✦');
+  if (wasEdit) await loadDiaries(); // 编辑后强制刷新，兜底 Realtime 延迟
+  showToast(wasEdit ? '日记已更新' : '已记录这一刻 ✦');
 }
 
 /* Delete */
@@ -1178,45 +1181,69 @@ function importBackup(e) {
 /* ================================================================
    TODO
    ================================================================ */
-const TODO_KEY = 'jelly_star_todos';
 let todoList = [];
 let todoOpen = false;
 
-function loadTodos() {
-  try { todoList = JSON.parse(localStorage.getItem(TODO_KEY) || '[]'); } catch(e) { todoList = []; }
+async function loadTodos() {
+  if (!supabaseClient) { todoList = []; renderTodos(); return; }
+  try {
+    const { data, error } = await supabaseClient.from('todos').select('*').order('id', { ascending: true });
+    if (error) throw error;
+    todoList = data || [];
+    renderTodos();
+  } catch(e) {
+    // 如果表不存在，回退到 localStorage
+    try { todoList = JSON.parse(localStorage.getItem('jelly_star_todos') || '[]'); } catch(e2) { todoList = []; }
+    renderTodos();
+  }
 }
-function saveTodos() { localStorage.setItem(TODO_KEY, JSON.stringify(todoList)); }
+async function saveTodoToDB(item) {
+  if (!supabaseClient) return false;
+  try {
+    const { error } = await supabaseClient.from('todos').upsert(item, { onConflict: 'id' });
+    return !error;
+  } catch(e) { return false; }
+}
+async function deleteTodoFromDB(id) {
+  if (!supabaseClient) return false;
+  try {
+    const { error } = await supabaseClient.from('todos').delete().eq('id', id);
+    return !error;
+  } catch(e) { return false; }
+}
 
 function toggleTodo() {
   todoOpen = !todoOpen;
   document.getElementById('todoBody').classList.toggle('visible', todoOpen);
   document.getElementById('todoToggleIcon').classList.toggle('open', todoOpen);
 }
-function addTodo() {
+async function addTodo() {
   const input = document.getElementById('todoInput');
   const text = input.value.trim();
   if (!text) return;
-  todoList.push({ id: Date.now().toString(36), text, done: false, date: new Date().toISOString().split('T')[0] });
+  const item = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text, done: false, date: new Date().toISOString().split('T')[0] };
+  todoList.push(item);
   input.value = '';
-  saveTodos();
   renderTodos();
+  await saveTodoToDB(item);
 }
-function toggleTodoItem(id) {
+async function toggleTodoItem(id) {
   const item = todoList.find(t => t.id === id);
   if (!item) return;
   item.done = !item.done;
-  saveTodos();
   renderTodos();
+  await saveTodoToDB(item);
 }
-function deleteTodoItem(id) {
+async function deleteTodoItem(id) {
   todoList = todoList.filter(t => t.id !== id);
-  saveTodos();
   renderTodos();
+  await deleteTodoFromDB(id);
 }
-function clearDoneTodos() {
+async function clearDoneTodos() {
+  const doneIds = todoList.filter(t => t.done).map(t => t.id);
   todoList = todoList.filter(t => !t.done);
-  saveTodos();
   renderTodos();
+  for (const id of doneIds) await deleteTodoFromDB(id);
 }
 function copyTodoToDiary() {
   const undone = todoList.filter(t => !t.done);
@@ -1242,7 +1269,6 @@ function renderTodos() {
 }
 
 /* Initial render */
-loadTodos();
 renderTodos();
 renderDiaries();
 </script>
