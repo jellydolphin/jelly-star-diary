@@ -491,6 +491,28 @@ body {
 }
 .login-card .login-btn:hover { background: #f0d4c8; }
 .login-card .login-error { color: #b87070; font-size: 13px; margin-top: 8px; min-height: 20px; font-family: 'Noto Sans SC', sans-serif; }
+
+.clear-login-btn {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e0d5c8;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  color: #b0a090;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  font-family: 'Noto Sans SC', sans-serif;
+  line-height: 1;
+}
+.clear-login-btn:hover {
+  background: rgba(220,180,180,0.3);
+  color: #b87070;
+  border-color: #d4b8b8;
+}
 .login-card .config-hint { font-size: 11px; color: #b0a090; margin-top: 8px; font-family: 'Noto Sans SC', sans-serif; }
 .login-card .config-hint a { color: #8a7a6a; }
 
@@ -549,6 +571,7 @@ body {
       需要先创建 Supabase 项目。查看 <a href="https://github.com/jellydolphin/jelly-star-diary" target="_blank">GitHub README</a> 了解配置方法。
     </div>
   </div>
+  <button class="clear-login-btn" onclick="clearLoginData()" title="清除登录记录">×</button>
 </div>
 
 <div class="app-container">
@@ -795,6 +818,15 @@ function doLogout() {
     document.getElementById('loginSecret').value = sc;
   }
 })();
+
+function clearLoginData() {
+  localStorage.removeItem('js_nickname');
+  localStorage.removeItem('js_secret');
+  document.getElementById('loginNickname').value = '';
+  document.getElementById('loginSecret').value = '';
+  document.getElementById('loginError').textContent = '';
+  showToast('登录记录已清除 ✦');
+}
 
 /* ================================================================
    SUPABASE CRUD
