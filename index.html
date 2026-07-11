@@ -744,7 +744,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
    GLOBAL STATE
    ================================================================ */
 let supabaseClient = null;
-let currentUser = { nickname: '', color: '#e8b0a0', secretHash: '' };
+let currentUser = { nickname: '', color: '#e8b0a0' };
 let diaries = [];
 let realtimeChannel = null;
 const USER_COLORS = ['#e8b0a0','#a0c8e0','#c4d8a0','#d0a8d0','#e0c8a0'];
@@ -769,18 +769,9 @@ async function doLogin() {
   try {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Simple hash for secret-based data isolation
-    async function hashSecret(s) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(s);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-    const secretHash = await hashSecret(secret);
-
     // Hash secret to a color index
     const colorIdx = secret.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % USER_COLORS.length;
-    currentUser = { nickname, color: USER_COLORS[colorIdx], secretHash };
+    currentUser = { nickname, color: USER_COLORS[colorIdx] };
 
     // Store login in localStorage for auto-login
     localStorage.setItem('js_nickname', nickname);
@@ -806,7 +797,7 @@ function doLogout() {
   localStorage.removeItem('js_secret');
   supabaseClient = null;
   diaries = [];
-  currentUser = { nickname: '', color: '#e8b0a0', secretHash: '' };
+  currentUser = { nickname: '', color: '#e8b0a0' };
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('loginNickname').value = '';
   document.getElementById('loginSecret').value = '';
@@ -844,7 +835,6 @@ async function loadDiaries() {
     const { data, error } = await supabaseClient
       .from('diaries')
       .select('*')
-      .eq('secret_hash', currentUser.secretHash)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -860,7 +850,6 @@ async function saveDiaryToDB(diary) {
   try {
     const record = {
       id: diary.id,
-      secret_hash: currentUser.secretHash,
       author: currentUser.nickname,
       author_color: currentUser.color,
       date: diary.date,
@@ -900,7 +889,7 @@ function subscribeRealtime() {
   realtimeChannel = supabaseClient
     .channel('diary-changes')
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'diaries', filter: `secret_hash=eq.${currentUser.secretHash}` },
+      { event: '*', schema: 'public', table: 'diaries' },
       (payload) => {
         if (payload.eventType === 'INSERT') {
           if (!diaries.find(d => d.id === payload.new.id)) {
@@ -1167,7 +1156,6 @@ function importBackup(e) {
       for (const d of data) {
         const record = {
           id: d.id || (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)),
-          secret_hash: currentUser.secretHash,
           author: d.author || currentUser.nickname,
           author_color: d.author_color || currentUser.color,
           date: d.date, title: d.title, mood: d.mood || '',
